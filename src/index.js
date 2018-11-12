@@ -1,14 +1,12 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
-import { finalData } from './constants';
-import TextField from './TextField'
+import App from './App'
 import * as serviceWorker from './serviceWorker';
 
 ReactDOM.render(
                 <div>
-                  {finalData}
-                  <div><TextField/></div>
+                  <App/>
                 </div>
 , document.getElementById('root'));
 
