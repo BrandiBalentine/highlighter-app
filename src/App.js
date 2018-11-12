@@ -6,23 +6,59 @@ class App extends Component {
 
   constructor(props) {
     super(props);
-    this.state = { text: defaultString, highlightedText: [] };
+    this.state = { text: defaultString,
+                   highlightedText: [],
+                   highlights: this.extractHighlights(defaultHighlights),
+                   newHighlight: '' };
     this.handleChange = this.handleChange.bind(this);
+    this.setNewHighlight = this.setNewHighlight.bind(this);
+    this.addHighlight = this.addHighlight.bind(this);
+    this.resetHighlights = this.resetHighlights.bind(this);
+    this.defaultHighlights = defaultHighlights;
   }
 
   componentDidMount() {
-    let fragments = this.createStringFragments(this.createNewHighlights(this.dataSort(defaultHighlights)));
+    let fragments = this.stringFragmentsFromHighlights(defaultHighlights);
     this.setState({ highlightedText: fragments});
   }
   
-
   handleChange(e) {
     this.setState({ text: e.target.value });
     this.setState({
       text: e.target.value
     }, () => {
-      let fragments = this.createStringFragments(this.createNewHighlights(this.dataSort(defaultHighlights)));
+      let fragments = this.stringFragmentsFromHighlights(defaultHighlights);
       this.setState({ highlightedText: fragments});
+    })
+  }
+
+  setNewHighlight(e) {
+    this.setState({ newHighlight: e.target.value });
+  }
+
+  resetHighlights() {
+    this.setState({ highlights: [] });
+  }
+
+  addHighlight() {
+    let highlightString = this.state.newHighlight.split(',');
+    let highlight = {startOffset: parseInt(highlightString[0]),
+                     endOffset: parseInt(highlightString[1]),
+                     color: highlightString[2],
+                     priority: parseInt(highlightString[3])};
+    this.defaultHighlights.push(highlight);
+    let fragments = this.stringFragmentsFromHighlights(this.defaultHighlights);
+    this.setState({ highlights: [...this.state.highlights, this.extractHighlights(this.createNewHighlights(this.defaultHighlights))] });
+    this.setState({ highlightedText: fragments});
+  }
+
+  stringFragmentsFromHighlights(highlights) {
+    return (this.createStringFragments(this.createNewHighlights(this.dataSort(highlights))));
+  }
+
+  extractHighlights(highlights) {
+    return highlights.map((highlight, index) => {
+      return React.createElement("li", {key: `highlight-${index}`}, `Start Offset: ${highlight.startOffset}, End Offset: ${highlight.endOffset}, Color: ${highlight.color}, Priority: ${highlight.priority}`);
     })
   }
 
@@ -65,13 +101,18 @@ class App extends Component {
       let existing = highlights[i - 1];
   
       if (current.startOffset >= existing.endOffset) { continue }
+      if (current.startOffset === existing.startOffset &&
+          current.endOffset === existing.endOffset &&
+          current.color === existing.color) {
+            highlights.splice(i, 1);
+            continue;
+          }
   
       let currentHasPriority = current.priority < existing.priority;
       let currentStartsSame = current.startOffset === existing.startOffset;
-      let currentEndsAfter = current.startOffset > existing.startOffset && current.endOffset > existing.endOffset;
-      let currentEndsBefore = current.startOffset > existing.startOffset && current.endOffset < existing.endOffset;
+      let currentEndsAfter = current.endOffset > existing.endOffset;
+      let currentEndsBefore = current.endOffset < existing.endOffset;
     
-      // current starts same
       if (currentStartsSame) {
         if (currentHasPriority) {
           if (current.endOffset > existing.endOffset) {
@@ -91,12 +132,13 @@ class App extends Component {
       }
     
       if (currentEndsAfter) {
-        tempHighlights.push(this.newHighlight(existing.startOffset, current.startOffset, existing));
         if (currentHasPriority) {
+          tempHighlights.push(this.newHighlight(existing.startOffset, current.startOffset, existing));
           tempHighlights.push(this.newHighlight(current.startOffset, existing.endOffset, current));
           tempHighlights.push(this.newHighlight(existing.endOffset, current.endOffset, current));
         } else {
-          tempHighlights.push(current);
+          tempHighlights.push(this.newHighlight(existing.startOffset, existing.endOffset, existing));
+          tempHighlights.push(this.newHighlight(existing.endOffset, current.endOffset, current));
         }
         highlights.splice(i - 1, 2, ...tempHighlights);
         return this.createNewHighlights(this.dataSort(highlights));
@@ -106,7 +148,7 @@ class App extends Component {
         if (currentHasPriority) {
           tempHighlights.push(this.newHighlight(existing.startOffset, current.startOffset, existing));
           tempHighlights.push(current);
-          tempHighlights.push(this.newHighlight(current.startOffset, existing.startOffset, existing));
+          tempHighlights.push(this.newHighlight(current.endOffset, existing.endOffset, existing));
           highlights.splice(i - 1, 2, ...tempHighlights);
           return this.createNewHighlights(this.dataSort(highlights));
         }
@@ -122,10 +164,30 @@ class App extends Component {
         </header>
         <main>
           <p>{this.state.highlightedText}</p>
-          <input 
-            onChange={this.handleChange}
+          <input
             value={this.state.text}
+            onChange={this.handleChange}
           />
+          <div>
+            <p>Add Your Own Highlight</p>
+            <input
+              value={this.state.newHighlight}
+              onChange={this.setNewHighlight}
+            />
+            <input
+              type="submit"
+              onClick={this.addHighlight}
+              value="Create"
+            />
+          </div>
+          <div>
+            <input
+                type="submit"
+                onClick={this.resetHighlights}
+                value="Reset all"
+              />
+          </div>
+          <ul>{this.state.highlights}</ul>
         </main>
       </div>
     );
