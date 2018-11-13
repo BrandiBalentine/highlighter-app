@@ -1,0 +1,35 @@
+@import 'styles/_variables.scss';
+.app {
+  display: flex;
+  justify-content: center;
+}
+
+main {
+  width: 960px;
+  padding: 16px;
+}
+
+.container-phrase {
+  min-height: 27px;
+}
+
+.phrase {
+  padding: 1px 0;
+}
+
+input {
+  padding: 10px 10px 5px 0!important;
+  border: 0!important;
+  border-bottom: 1px solid #d7d7d7!important;
+  border-radius: 0!important;
+  background-color: transparent!important;
+  box-shadow: none!important;
+  color: $font-color;
+  font-size: 1rem;
+  outline: none;
+  width: 100%;
+
+  &:focus {
+    border-bottom: 1px solid #aeaeae!important;
+  }
+}

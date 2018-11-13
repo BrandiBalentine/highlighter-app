@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import './App.css';
+import './App.scss';
 import { defaultString, defaultHighlights } from './constants';
 
 class App extends Component {
@@ -80,12 +80,12 @@ class App extends Component {
     let iterator = 0;
     highlights.forEach((highlight, index) => {
       if (iterator < highlight.startOffset) {
-        results.push(React.createElement("span", {key: index}, this.state.text.slice(iterator, highlight.startOffset)));
+        results.push(React.createElement("span", {key: index, className: "phrase"}, this.state.text.slice(iterator, highlight.startOffset)));
       }
-      results.push(React.createElement("span", {style: { "backgroundColor": highlight.color}, key: index + "color"}, this.state.text.slice(highlight.startOffset, highlight.endOffset)));
+      results.push(React.createElement("span", {style: { "backgroundColor": highlight.color}, className: "phrase", key: index + "color"}, this.state.text.slice(highlight.startOffset, highlight.endOffset)));
       iterator = highlight.endOffset;
     });
-    results.push(React.createElement("span", {key: iterator}, this.state.text.slice(iterator, this.state.text.length)));
+    results.push(React.createElement("span", {key: iterator, className: "phrase"}, this.state.text.slice(iterator, this.state.text.length)));
     return results;
   }
   
@@ -159,35 +159,16 @@ class App extends Component {
 
   render() {
     return (
-      <div className="App">
-        <header>Textio Highlighter
-        </header>
+      <div className="app">
         <main>
-          <p>{this.state.highlightedText}</p>
+          <h1>Phrase Highlighter</h1>
+          <p className="container-phrase">{this.state.highlightedText}</p>
           <input
             value={this.state.text}
             onChange={this.handleChange}
+            placeholder="Enter a phrase"
           />
-          <div>
-            <p>Add Your Own Highlight</p>
-            <input
-              value={this.state.newHighlight}
-              onChange={this.setNewHighlight}
-            />
-            <input
-              type="submit"
-              onClick={this.addHighlight}
-              value="Create"
-            />
-          </div>
-          <div>
-            <input
-                type="submit"
-                onClick={this.resetHighlights}
-                value="Reset all"
-              />
-          </div>
-          <ul>{this.state.highlights}</ul>
+
         </main>
       </div>
     );

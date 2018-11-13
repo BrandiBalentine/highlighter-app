@@ -1,0 +1,24 @@
+$font-color: #6c696a;
+$body-font-family: 'PT Serif', serif;
+$heading-font-family: 'Open Sans', sans-serif;
+
+html,
+body {
+    height: 100%;
+}
+
+body {
+  color: $font-color;
+  font-family: $body-font-family;
+  font-size: 16px;
+}
+
+h1 {
+    font-family: $heading-font-family;
+    font-size: 2rem; // 32px
+    font-weight: 600;
+}
+
+p {
+    font-size: 21px;
+}
