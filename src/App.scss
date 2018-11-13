@@ -1,12 +1,12 @@
 @import 'styles/_variables.scss';
 .app {
-  display: flex;
-  justify-content: center;
+  width: 960px;
+  padding: 16px;
 }
 
 main {
-  width: 960px;
-  padding: 16px;
+  display: flex;
+  justify-content: center;
 }
 
 .container-phrase {

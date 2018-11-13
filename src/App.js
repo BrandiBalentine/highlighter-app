@@ -7,63 +7,32 @@ class App extends Component {
   constructor(props) {
     super(props);
     this.state = { text: defaultString,
-                   highlightedText: [],
-                   highlights: this.extractHighlights(defaultHighlights),
-                   newHighlight: '' };
+                   highlightedText: [] };
     this.handleChange = this.handleChange.bind(this);
-    this.setNewHighlight = this.setNewHighlight.bind(this);
-    this.addHighlight = this.addHighlight.bind(this);
-    this.resetHighlights = this.resetHighlights.bind(this);
-    this.defaultHighlights = defaultHighlights;
   }
 
   componentDidMount() {
-    let fragments = this.stringFragmentsFromHighlights(defaultHighlights);
-    this.setState({ highlightedText: fragments});
+    this.setHighlightedText(defaultHighlights);
   }
   
   handleChange(e) {
-    this.setState({ text: e.target.value });
     this.setState({
       text: e.target.value
     }, () => {
-      let fragments = this.stringFragmentsFromHighlights(defaultHighlights);
-      this.setState({ highlightedText: fragments});
+      this.setHighlightedText(defaultHighlights);
     })
   }
 
-  setNewHighlight(e) {
-    this.setState({ newHighlight: e.target.value });
-  }
-
-  resetHighlights() {
-    this.setState({ highlights: [] });
-  }
-
-  addHighlight() {
-    let highlightString = this.state.newHighlight.split(',');
-    let highlight = {startOffset: parseInt(highlightString[0]),
-                     endOffset: parseInt(highlightString[1]),
-                     color: highlightString[2],
-                     priority: parseInt(highlightString[3])};
-    this.defaultHighlights.push(highlight);
-    let fragments = this.stringFragmentsFromHighlights(this.defaultHighlights);
-    this.setState({ highlights: [...this.state.highlights, this.extractHighlights(this.createNewHighlights(this.defaultHighlights))] });
-    this.setState({ highlightedText: fragments});
+  setHighlightedText(highlights) {
+    this.setState({ highlightedText: this.stringFragmentsFromHighlights(highlights) });
   }
 
   stringFragmentsFromHighlights(highlights) {
-    return (this.createStringFragments(this.createNewHighlights(this.dataSort(highlights))));
+    return this.createStringFragments(this.mergeHighlights(this.sortByStartOffset(highlights)));
   }
 
-  extractHighlights(highlights) {
-    return highlights.map((highlight, index) => {
-      return React.createElement("li", {key: `highlight-${index}`}, `Start Offset: ${highlight.startOffset}, End Offset: ${highlight.endOffset}, Color: ${highlight.color}, Priority: ${highlight.priority}`);
-    })
-  }
-
-  dataSort(data) {
-    return data.sort(function(a, b){return a.startOffset - b.startOffset});
+  sortByStartOffset(data) {
+    return data.sort((a, b) => { return a.startOffset - b.startOffset });
   }
 
   newHighlight(startOffset, endOffset, highlight) {
@@ -72,7 +41,7 @@ class App extends Component {
       endOffset: endOffset,
       color: highlight.color,
       priority: highlight.priority
-    }
+    };
   }
 
   createStringFragments(highlights) {
@@ -82,15 +51,14 @@ class App extends Component {
       if (iterator < highlight.startOffset) {
         results.push(React.createElement("span", {key: index, className: "phrase"}, this.state.text.slice(iterator, highlight.startOffset)));
       }
-      results.push(React.createElement("span", {style: { "backgroundColor": highlight.color}, className: "phrase", key: index + "color"}, this.state.text.slice(highlight.startOffset, highlight.endOffset)));
+      results.push(React.createElement("span", {style: { "backgroundColor": highlight.color}, className: "phrase", key: index + "-color"}, this.state.text.slice(highlight.startOffset, highlight.endOffset)));
       iterator = highlight.endOffset;
     });
-    results.push(React.createElement("span", {key: iterator, className: "phrase"}, this.state.text.slice(iterator, this.state.text.length)));
+    results.push(React.createElement("span", {key: iterator + "-iterator", className: "phrase"}, this.state.text.slice(iterator, this.state.text.length)));
     return results;
   }
   
-
-  createNewHighlights(highlights) {
+  mergeHighlights(highlights) {
     for (let i = 0; i < highlights.length; i++) {
   
       if (i === 0) { continue }
@@ -99,36 +67,37 @@ class App extends Component {
   
       let current = highlights[i];
       let existing = highlights[i - 1];
-  
-      if (current.startOffset >= existing.endOffset) { continue }
-      if (current.startOffset === existing.startOffset &&
-          current.endOffset === existing.endOffset &&
-          current.color === existing.color) {
-            highlights.splice(i, 1);
-            continue;
-          }
-  
+
+      let noMergeNeeded = current.startOffset >= existing.endOffset;
       let currentHasPriority = current.priority < existing.priority;
       let currentStartsSame = current.startOffset === existing.startOffset;
       let currentEndsAfter = current.endOffset > existing.endOffset;
       let currentEndsBefore = current.endOffset < existing.endOffset;
+      let duplicate = current.startOffset === existing.startOffset &&
+                      current.endOffset === existing.endOffset &&
+                      current.color === existing.color;
+  
+      if (noMergeNeeded) { continue }
+
+      if (duplicate) {
+        highlights.splice(i, 1);
+        continue;
+      }
     
       if (currentStartsSame) {
         if (currentHasPriority) {
-          if (current.endOffset > existing.endOffset) {
-            tempHighlights.push(current);
-          } else {
-            tempHighlights.push(this.newHighlight(current.startOffset, existing.startOffset, current));
-            tempHighlights.push(this.newHighlight(existing.startOffset, existing.endOffset, existing));
+          tempHighlights.push(current);
+          if (current.endOffset < existing.endOffset) {
+            tempHighlights.push(this.newHighlight(current.endOffset, existing.endOffset, existing));
           }
         } else {
           if (current.endOffset > existing.endOffset) {
-            tempHighlights.push(this.newHighlight(existing.startOffset, existing.endOffset, existing));
+            tempHighlights.push(existing);
             tempHighlights.push(this.newHighlight(existing.endOffset, current.endOffset, current));
           }
         }
         highlights.splice(i - 1, 2, ...tempHighlights);
-        return this.createNewHighlights(this.dataSort(highlights));
+        return this.mergeHighlights(this.sortByStartOffset(highlights));
       }
     
       if (currentEndsAfter) {
@@ -137,11 +106,11 @@ class App extends Component {
           tempHighlights.push(this.newHighlight(current.startOffset, existing.endOffset, current));
           tempHighlights.push(this.newHighlight(existing.endOffset, current.endOffset, current));
         } else {
-          tempHighlights.push(this.newHighlight(existing.startOffset, existing.endOffset, existing));
+          tempHighlights.push(existing);
           tempHighlights.push(this.newHighlight(existing.endOffset, current.endOffset, current));
         }
         highlights.splice(i - 1, 2, ...tempHighlights);
-        return this.createNewHighlights(this.dataSort(highlights));
+        return this.mergeHighlights(this.sortByStartOffset(highlights));
       }
       
       if (currentEndsBefore) {
@@ -150,7 +119,10 @@ class App extends Component {
           tempHighlights.push(current);
           tempHighlights.push(this.newHighlight(current.endOffset, existing.endOffset, existing));
           highlights.splice(i - 1, 2, ...tempHighlights);
-          return this.createNewHighlights(this.dataSort(highlights));
+          return this.mergeHighlights(this.sortByStartOffset(highlights));
+        } else {
+          highlights.splice(i, 1);
+          return this.mergeHighlights(this.sortByStartOffset(highlights));
         }
       }
     }
@@ -160,7 +132,6 @@ class App extends Component {
   render() {
     return (
       <div className="app">
-        <main>
           <h1>Phrase Highlighter</h1>
           <p className="container-phrase">{this.state.highlightedText}</p>
           <input
@@ -168,8 +139,6 @@ class App extends Component {
             onChange={this.handleChange}
             placeholder="Enter a phrase"
           />
-
-        </main>
       </div>
     );
   }
