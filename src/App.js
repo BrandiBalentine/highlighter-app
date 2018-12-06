@@ -1,25 +1,26 @@
 import React, { Component } from 'react';
 import './App.scss';
-import { defaultString, defaultHighlights } from './constants';
+import { defaultString, rules } from './constants';
 
 class App extends Component {
 
   constructor(props) {
     super(props);
     this.state = { text: defaultString,
-                   highlightedText: [] };
+                   highlightedText: [],
+                   rules: rules };
     this.handleChange = this.handleChange.bind(this);
   }
 
   componentDidMount() {
-    this.setHighlightedText(defaultHighlights);
+    this.setHighlightedText(this.createHighlights(this.state.rules));
   }
   
   handleChange(e) {
     this.setState({
       text: e.target.value
     }, () => {
-      this.setHighlightedText(defaultHighlights);
+      this.setHighlightedText(this.createHighlights(this.state.rules));
     })
   }
 
@@ -42,6 +43,19 @@ class App extends Component {
       color: highlight.color,
       priority: highlight.priority
     };
+  }
+
+  createHighlights(rules) {
+    let highlights = [];
+    rules.forEach(rule => {
+      rule.phrases.forEach(phrase => {
+        let phrase_location = this.state.text.search(phrase);
+        if (phrase_location > -1) {
+          highlights.push(this.newHighlight(phrase_location, phrase_location + phrase.length, {color: rule.color, priority: rule.priority}));
+        }
+      });
+    });
+    return highlights;
   }
 
   createStringFragments(highlights) {
@@ -73,6 +87,7 @@ class App extends Component {
       let currentStartsSame = current.startOffset === existing.startOffset;
       let currentEndsAfter = current.endOffset > existing.endOffset;
       let currentEndsBefore = current.endOffset < existing.endOffset;
+      let currentEndsSame = current.endOffset === existing.endOffset;
       let duplicate = current.startOffset === existing.startOffset &&
                       current.endOffset === existing.endOffset &&
                       current.color === existing.color;
@@ -118,6 +133,18 @@ class App extends Component {
           tempHighlights.push(this.newHighlight(existing.startOffset, current.startOffset, existing));
           tempHighlights.push(current);
           tempHighlights.push(this.newHighlight(current.endOffset, existing.endOffset, existing));
+          highlights.splice(i - 1, 2, ...tempHighlights);
+          return this.mergeHighlights(this.sortByStartOffset(highlights));
+        } else {
+          highlights.splice(i, 1);
+          return this.mergeHighlights(this.sortByStartOffset(highlights));
+        }
+      }
+
+      if (currentEndsSame) {
+        if (currentHasPriority) {
+          tempHighlights.push(this.newHighlight(existing.startOffset, current.startOffset, existing));
+          tempHighlights.push(this.newHighlight(current.startOffset, current.endOffset, current));
           highlights.splice(i - 1, 2, ...tempHighlights);
           return this.mergeHighlights(this.sortByStartOffset(highlights));
         } else {
