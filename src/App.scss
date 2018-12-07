@@ -10,12 +10,86 @@ main {
 }
 
 .container-phrase {
+  line-height: 2rem; // 32px
   min-height: 27px;
 }
 
 .phrase {
   padding: 1px 0;
+
+  &--left {
+    border-left: solid 1px $white;
+    border-top-left-radius: 5px;
+    border-bottom-left-radius: 5px;
+  }
+
+  &--right {
+    border-right: solid 1px $white;
+    border-top-right-radius: 5px;
+    border-bottom-right-radius: 5px;
+  }
+
+  &--both {
+    border: solid 1px $white;
+    border-radius: 5px;
+  }
+
+  &-color {
+
+    cursor: pointer;
+
+    &--orange {
+      background-color: $orange;
+
+      &:hover {
+        background-color: $orange-hover;
+        color: $white;
+      }
+    }
+
+    &--green {
+      background-color: $green;
+      
+      &:hover {
+        background-color: $green-hover;
+        color: $white;
+      }
+    }
+
+    &--blue {
+      background-color: $blue;
+
+      &:hover {
+        background-color: $blue-hover;
+        color: $white;
+      }
+    }
+
+    &--purple {
+      background-color: $purple;
+
+      &:hover {
+        background-color: $purple-hover;
+        color: $white;
+      }
+    }
+
+    &--grey {
+      background-color: $grey;
+
+      &:hover {
+        background-color: $grey-hover;
+        color: $white;
+      }
+    }
+
+    &--transparent {
+      background-color: transparent;
+    }
+  }
 }
+
+
 
 input {
   padding: 10px 10px 5px 0!important;

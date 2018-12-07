@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import Phrase from './components/Phrase';
 import './App.scss';
 import { defaultString, rules } from './constants';
 
@@ -7,41 +8,40 @@ class App extends Component {
   constructor(props) {
     super(props);
     this.state = { text: defaultString,
-                   highlightedText: [],
-                   rules: rules };
+                   rules: rules,
+                   highlights: [],
+                   phrases: [] };
     this.handleChange = this.handleChange.bind(this);
   }
 
   componentDidMount() {
-    this.setHighlightedText(this.createHighlights(this.state.rules));
+    this.phrasesFromHighlights(this.createHighlights(this.state.rules));
   }
   
   handleChange(e) {
     this.setState({
       text: e.target.value
     }, () => {
-      this.setHighlightedText(this.createHighlights(this.state.rules));
+      this.phrasesFromHighlights(this.createHighlights(this.state.rules));
     })
   }
 
-  setHighlightedText(highlights) {
-    this.setState({ highlightedText: this.stringFragmentsFromHighlights(highlights) });
-  }
-
-  stringFragmentsFromHighlights(highlights) {
-    return this.createStringFragments(this.mergeHighlights(this.sortByStartOffset(highlights)));
+  phrasesFromHighlights(highlights) {
+    this.createPhrases(this.mergeHighlights(this.sortByStartOffset(highlights)));
   }
 
   sortByStartOffset(data) {
     return data.sort((a, b) => { return a.startOffset - b.startOffset });
   }
 
-  newHighlight(startOffset, endOffset, highlight) {
+  newHighlight(startOffset, endOffset, highlight, curved) {
     return {
+      id: this.uniqueKey(),
       startOffset: startOffset,
       endOffset: endOffset,
       color: highlight.color,
-      priority: highlight.priority
+      priority: highlight.priority,
+      curved: curved
     };
   }
 
@@ -51,25 +51,35 @@ class App extends Component {
       rule.phrases.forEach(phrase => {
         let phrase_location = this.state.text.search(phrase);
         if (phrase_location > -1) {
-          highlights.push(this.newHighlight(phrase_location, phrase_location + phrase.length, {color: rule.color, priority: rule.priority}));
+          highlights.push(this.newHighlight(phrase_location, phrase_location + phrase.length, {color: rule.color, priority: rule.priority}, "both"));
         }
       });
     });
+    this.setState({ highlights: highlights });
     return highlights;
   }
 
-  createStringFragments(highlights) {
+  createPhrases(highlights) {
     let results = [];
     let iterator = 0;
     highlights.forEach((highlight, index) => {
       if (iterator < highlight.startOffset) {
-        results.push(React.createElement("span", {key: index, className: "phrase"}, this.state.text.slice(iterator, highlight.startOffset)));
+        results.push(<Phrase text={this.state.text.slice(iterator, highlight.startOffset)}
+                             key={this.uniqueKey()} />);
       }
-      results.push(React.createElement("span", {style: { "backgroundColor": highlight.color}, className: "phrase", key: index + "-color"}, this.state.text.slice(highlight.startOffset, highlight.endOffset)));
+      results.push(<Phrase text={this.state.text.slice(highlight.startOffset, highlight.endOffset)}
+                           color={highlight.color}
+                           curved={highlight.curved}
+                           key={this.uniqueKey()} />);
       iterator = highlight.endOffset;
     });
-    results.push(React.createElement("span", {key: iterator + "-iterator", className: "phrase"}, this.state.text.slice(iterator, this.state.text.length)));
-    return results;
+    results.push(<Phrase text={this.state.text.slice(iterator, this.state.text.length)}
+                         key={this.uniqueKey()} />);
+    this.setState({ phrases: results });
+  }
+
+  uniqueKey() {
+    return (Date.now() + Math.random()) * 10000;
   }
   
   mergeHighlights(highlights) {
@@ -103,12 +113,12 @@ class App extends Component {
         if (currentHasPriority) {
           tempHighlights.push(current);
           if (current.endOffset < existing.endOffset) {
-            tempHighlights.push(this.newHighlight(current.endOffset, existing.endOffset, existing));
+            tempHighlights.push(this.newHighlight(current.endOffset, existing.endOffset, existing, "right"));
           }
         } else {
           if (current.endOffset > existing.endOffset) {
             tempHighlights.push(existing);
-            tempHighlights.push(this.newHighlight(existing.endOffset, current.endOffset, current));
+            tempHighlights.push(this.newHighlight(existing.endOffset, current.endOffset, current, "both"));
           }
         }
         highlights.splice(i - 1, 2, ...tempHighlights);
@@ -117,12 +127,12 @@ class App extends Component {
     
       if (currentEndsAfter) {
         if (currentHasPriority) {
-          tempHighlights.push(this.newHighlight(existing.startOffset, current.startOffset, existing));
-          tempHighlights.push(this.newHighlight(current.startOffset, existing.endOffset, current));
-          tempHighlights.push(this.newHighlight(existing.endOffset, current.endOffset, current));
+          tempHighlights.push(this.newHighlight(existing.startOffset, current.startOffset, existing, "left"));
+          tempHighlights.push(this.newHighlight(current.startOffset, existing.endOffset, current, "both"));
+          tempHighlights.push(this.newHighlight(existing.endOffset, current.endOffset, current, "both"));
         } else {
           tempHighlights.push(existing);
-          tempHighlights.push(this.newHighlight(existing.endOffset, current.endOffset, current));
+          tempHighlights.push(this.newHighlight(existing.endOffset, current.endOffset, current, "right"));
         }
         highlights.splice(i - 1, 2, ...tempHighlights);
         return this.mergeHighlights(this.sortByStartOffset(highlights));
@@ -130,9 +140,9 @@ class App extends Component {
       
       if (currentEndsBefore) {
         if (currentHasPriority) {
-          tempHighlights.push(this.newHighlight(existing.startOffset, current.startOffset, existing));
+          tempHighlights.push(this.newHighlight(existing.startOffset, current.startOffset, existing, "left"));
           tempHighlights.push(current);
-          tempHighlights.push(this.newHighlight(current.endOffset, existing.endOffset, existing));
+          tempHighlights.push(this.newHighlight(current.endOffset, existing.endOffset, existing, "right"));
           highlights.splice(i - 1, 2, ...tempHighlights);
           return this.mergeHighlights(this.sortByStartOffset(highlights));
         } else {
@@ -143,8 +153,8 @@ class App extends Component {
 
       if (currentEndsSame) {
         if (currentHasPriority) {
-          tempHighlights.push(this.newHighlight(existing.startOffset, current.startOffset, existing));
-          tempHighlights.push(this.newHighlight(current.startOffset, current.endOffset, current));
+          tempHighlights.push(this.newHighlight(existing.startOffset, current.startOffset, existing, "left"));
+          tempHighlights.push(this.newHighlight(current.startOffset, current.endOffset, current, "both"));
           highlights.splice(i - 1, 2, ...tempHighlights);
           return this.mergeHighlights(this.sortByStartOffset(highlights));
         } else {
@@ -159,13 +169,13 @@ class App extends Component {
   render() {
     return (
       <div className="app">
-          <h1>Phrase Highlighter</h1>
-          <p className="container-phrase">{this.state.highlightedText}</p>
-          <input
-            value={this.state.text}
-            onChange={this.handleChange}
-            placeholder="Enter a phrase"
-          />
+        <h1>Phrase Highlighter</h1>
+        <p className="container-phrase">{this.state.phrases}</p>
+        <input
+          value={this.state.text}
+          onChange={this.handleChange}
+          placeholder="Enter a phrase"
+        />
       </div>
     );
   }
