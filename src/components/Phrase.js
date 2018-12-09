@@ -4,26 +4,39 @@ class Phrase extends Component {
   constructor(props) {
     super(props);
     this.state = { text: props.text,
-                   color: props.color,
-                   curved: props.curved
+                   highlight: props.highlight,
+                   highlights: props.highlights
                  };
   }
 
   handleMouseEnter = (e) => {
-    console.log("I'm entering a phrase");
+    if (!this.state.highlight) { return }
+    this.props.highlight.color = this.props.highlight.originalColor;
+    this.props.highlight.curved = this.props.highlight.originalCurved;
+    this.props.highlight.hover = "hover";
+    this.setState({highlight: this.props.highlight});
+    if (this.state.highlight.dominatingHighlights.length > 0) {
+      this.props.matchColorOfHighlight(this.state.highlight, this.state.highlights);
+    }
+    if (this.state.highlight.dominatedHighlights.length > 0) {
+      this.props.makeHighlightsTransparent(this.state.highlight, this.state.highlights);
+    }
   }
 
   handleMouseLeave = (e) => {
-    console.log("I'm leaving a phrase");
+    if (this.props.rerender) {
+      this.props.rerender();
+    }
   }
 
   getClassNames = () => {
     let classNames = "";
-    if (this.props.color) {
-      classNames += ` phrase-color phrase-color--${this.props.color}`;
-    }
-    if (this.props.curved) {
-      classNames += ` phrase--${this.props.curved}`;
+    if (this.state.highlight) {
+      classNames += ` phrase-color phrase-color--${this.state.highlight.color}`;
+      classNames += ` phrase--${this.state.highlight.curved}`;
+      if (this.state.highlight.hover) {
+        classNames += ` ${this.state.highlight.hover}`
+      }
     }
     return classNames;
   }

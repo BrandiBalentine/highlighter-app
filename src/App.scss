@@ -41,7 +41,8 @@ main {
     &--orange {
       background-color: $orange;
 
-      &:hover {
+      &:hover,
+      &.hover {
         background-color: $orange-hover;
         color: $white;
       }
@@ -50,7 +51,8 @@ main {
     &--green {
       background-color: $green;
       
-      &:hover {
+      &:hover,
+      &.hover {
         background-color: $green-hover;
         color: $white;
       }
@@ -59,7 +61,8 @@ main {
     &--blue {
       background-color: $blue;
 
-      &:hover {
+      &:hover,
+      &.hover {
         background-color: $blue-hover;
         color: $white;
       }
@@ -68,7 +71,8 @@ main {
     &--purple {
       background-color: $purple;
 
-      &:hover {
+      &:hover,
+      &.hover {
         background-color: $purple-hover;
         color: $white;
       }
@@ -77,7 +81,8 @@ main {
     &--grey {
       background-color: $grey;
 
-      &:hover {
+      &:hover,
+      &.hover {
         background-color: $grey-hover;
         color: $white;
       }

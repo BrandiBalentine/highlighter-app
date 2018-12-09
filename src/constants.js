@@ -1,4 +1,4 @@
-export const defaultString = 'We expect our candidates to be action-oriented, an adorable puppy, and have creative ideas for our team. They will deliver new technology and their creativity will be very unlikely to leave.';
+export const defaultString = 'We expect our candidates to be action-oriented action-oriented, an adorable puppy, and have creative ideas for our team. They will deliver new technology and their creativity will be very unlikely to leave.';
 export const rules = [
   {
     priority: 1,
