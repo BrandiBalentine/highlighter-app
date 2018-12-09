@@ -10,11 +10,8 @@ class Phrase extends Component {
   }
 
   handleMouseEnter = (e) => {
-    if (!this.state.highlight) { return }
-    this.props.highlight.color = this.props.highlight.originalColor;
-    this.props.highlight.curved = this.props.highlight.originalCurved;
+    this.resetState()
     this.props.highlight.hover = "hover";
-    this.setState({highlight: this.props.highlight});
     if (this.state.highlight.dominatingHighlights.length > 0) {
       this.props.matchColorOfHighlight(this.state.highlight, this.state.highlights);
     }
@@ -24,9 +21,7 @@ class Phrase extends Component {
   }
 
   handleMouseLeave = (e) => {
-    if (this.props.rerender) {
-      this.props.rerender();
-    }
+    this.props.rerender();
   }
 
   getClassNames = () => {
@@ -39,6 +34,11 @@ class Phrase extends Component {
       }
     }
     return classNames;
+  }
+
+  resetState = () => {
+    this.props.highlight.color = this.props.highlight.originalColor;
+    this.props.highlight.curved = this.props.highlight.originalCurved;
   }
 
   render() {
