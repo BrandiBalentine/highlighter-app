@@ -11,31 +11,30 @@ main {
 
 .container-phrase {
   line-height: 2rem; // 32px
-  min-height: 27px;
+  min-height: 64px;
 }
 
 .phrase {
-  padding: 1px 0;
+  border-left: solid 1px $white;
+  border-right: solid 1px $white;
+  margin: 0 -1px;
+  padding: 1px 1px;
 
   &--left {
-    border-left: solid 1px $white;
     border-top-left-radius: 5px;
     border-bottom-left-radius: 5px;
   }
 
   &--right {
-    border-right: solid 1px $white;
     border-top-right-radius: 5px;
     border-bottom-right-radius: 5px;
   }
 
   &--both {
-    border: solid 1px $white;
     border-radius: 5px;
   }
 
   &-color {
-
     cursor: pointer;
 
     &--orange {
@@ -44,7 +43,13 @@ main {
       &:hover,
       &.hover {
         background-color: $orange-hover;
+        border-color: $orange-hover;
         color: $white;
+      }
+
+      &.phrase--neither {
+        border-left: solid 1px $orange-hover;
+        border-right: solid 1px $orange-hover;
       }
     }
 
@@ -53,8 +58,14 @@ main {
       
       &:hover,
       &.hover {
+        border-color: $green-hover;
         background-color: $green-hover;
         color: $white;
+      }
+
+      &.phrase--neither {
+        border-left: solid 1px $green-hover;
+        border-right: solid 1px $green-hover;
       }
     }
 
@@ -63,8 +74,14 @@ main {
 
       &:hover,
       &.hover {
+        border-color: $blue-hover;
         background-color: $blue-hover;
         color: $white;
+
+        &.phrase--neither {
+          border-left: solid 1px $blue-hover;
+          border-right: solid 1px $blue-hover;
+        }
       }
     }
 
@@ -73,8 +90,14 @@ main {
 
       &:hover,
       &.hover {
+        border-color: $purple-hover;
         background-color: $purple-hover;
         color: $white;
+        
+        &.phrase--neither {
+          border-left: solid 1px $purple-hover;
+          border-right: solid 1px $purple-hover;
+        }
       }
     }
 
@@ -83,32 +106,46 @@ main {
 
       &:hover,
       &.hover {
+        border-color: $grey-hover;
         background-color: $grey-hover;
         color: $white;
+
+        &.phrase--neither {
+          border-left: solid 1px $grey-hover;
+          border-right: solid 1px $grey-hover;
+        }
       }
     }
 
     &--transparent {
       background-color: transparent;
+      border-color: transparent;
     }
   }
 }
 
-
+.hidden {
+  height: 1px;
+  left: -10000px;
+  position: absolute;
+  top: auto;
+  width: 1px;
+  overflow: hidden;
+}
 
 input {
-  padding: 10px 10px 5px 0!important;
-  border: 0!important;
-  border-bottom: 1px solid #d7d7d7!important;
-  border-radius: 0!important;
-  background-color: transparent!important;
-  box-shadow: none!important;
+  padding: 10px 10px 5px 0;
+  border: 0;
+  border-bottom: 1px solid $border-color;
+  border-radius: 0;
+  background-color: transparent;
+  box-shadow: none;
   color: $font-color;
   font-size: 1rem;
   outline: none;
   width: 100%;
 
   &:focus {
-    border-bottom: 1px solid #aeaeae!important;
+    border-bottom: 1px solid $border-color-focus;
   }
 }

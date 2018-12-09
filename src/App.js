@@ -306,10 +306,12 @@ class App extends Component {
       <div className="app">
         <h1>Phrase Highlighter</h1>
         <p className="container-phrase">{this.state.phrases}</p>
+        <label className="hidden" htmlFor="phrase-input">Enter a phrase</label>
         <input
           value={this.state.text}
           onChange={this.handleChange}
           placeholder="Enter a phrase"
+          id="phrase-input"
         />
       </div>
     );
